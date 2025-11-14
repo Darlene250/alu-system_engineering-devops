@@ -1,16 +1,28 @@
 #!/usr/bin/env bash
-# Installs Nginx with the following configurations:
-#+    Listens on port 80.
-#+    Returns a page containing "Holberton School" when queried
-#++    at the root with a curl GET request.
+# Configure Nginx web server and add 301 redirect
 
-sudo apt-get update 
-sudo apt-get install -y nginx 
+# Update packages and install nginx
+sudo apt-get update
+sudo apt-get install -y nginx
 
-echo "Holberton School" | sudo tee /var/www/html/index.html
+# Create index.html
+sudo mkdir -p /etc/nginx/html
+echo "Holberton School for the win!" | sudo tee /etc/nginx/html/index.html
 
-string_for_replacement="server_name _;\n\trewrite ^\/redirect_me https:\/\/www.youtube.com\/watch?v=QH2-TGUlwu4 permanent;"
+# Configure default server
+sudo bash -c 'cat > /etc/nginx/sites-available/default <<EOF
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
 
-sudo sed -i "s/server_name _;/$string_for_replacement/" /etc/nginx/sites-available/default
+    root /etc/nginx/html;
+    index index.html;
 
+    location /redirect_me {
+        return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;
+    }
+}
+EOF'
+
+# Restart nginx without systemctl
 sudo service nginx restart
