@@ -1,10 +1,28 @@
-#!/usr/bin/env bash
-#Let’s install the ufw firewall and setup a few rules on web-01
+#!/bin/bash
 
-sudo apt install -y ufw
-sudo ufw default allow outgoing
+echo -e "Updating packages...\n"
+sudo apt-get update -y
+
+echo -e "Installing UFW...\n"
+sudo apt-get install -y ufw
+
+echo -e "Configuring UFW...\n"
+
+# Allow SSH first to avoid lockout
+sudo ufw allow 22/tcp
+
+# Set default policies
 sudo ufw default deny incoming
-sudo ufw allow 22
-sudo ufw allow 443
-sudo ufw allow 80
-echo "y" | sudo ufw enable
+sudo ufw default allow outgoing
+
+# Allow other necessary ports
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+
+# Enable firewall safely (non-interactive)
+sudo ufw --force enable
+
+# Show current status
+sudo ufw status verbose
+
+echo -e "Firewall setup completed safely.\n"
