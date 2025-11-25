@@ -1,0 +1,13 @@
+#!/bin/bash
+# 1-run_nginx_as_nginx
+
+# Ensure Nginx is installed
+apt-get update -qq
+apt-get install -y nginx
+
+# Change Nginx configuration to use port 8080 and user nginx
+sed -i 's/listen 80;/listen 8080;/' /etc/nginx/sites-available/default
+sed -i 's/user www-data;/user nginx;/' /etc/nginx/nginx.conf
+
+# Restart Nginx
+service nginx restart
