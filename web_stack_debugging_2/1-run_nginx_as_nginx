@@ -1,13 +1,23 @@
-#!/bin/bash
-# 1-run_nginx_as_nginx
+#!/usr/bin/env bash
+# Configures Nginx to listen on port 8080 and run as the 'nginx' user
 
-# Ensure Nginx is installed
-apt-get update -qq
-apt-get install -y nginx
+# 1. Stop Apache (Port 8080 conflict)
+service apache2 stop > /dev/null 2>&1 || true
+pkill -9 apache2 > /dev/null 2>&1 || true
 
-# Change Nginx configuration to use port 8080 and user nginx
-sed -i 's/listen 80;/listen 8080;/' /etc/nginx/sites-available/default
-sed -i 's/user www-data;/user nginx;/' /etc/nginx/nginx.conf
+# 2. Configure Port 8080
+sed -i 's/listen 80 default_server;/listen 8080 default_server;/g' /etc/nginx/sites-available/default
+sed -i 's/listen \[::\]:80 default_server;/listen \[::\]:8080 default_server;/g' /etc/nginx/sites-available/default
 
-# Restart Nginx
+# 3. Configure User 'nginx' (The "Nuclear" Fix)
+# First, add the user just in case it is missing
+adduser --system --no-create-home --shell /bin/false --group --disabled-login nginx > /dev/null 2>&1 || true
+
+# Delete ANY line that contains the word "user" and ends with ";" to clear old configs
+sed -i '/user .*;/d' /etc/nginx/nginx.conf
+
+# Insert the correct config at the very top of the file
+sed -i '1iuser nginx;' /etc/nginx/nginx.conf
+
+# 4. Restart Nginx
 service nginx restart
